@@ -1,6 +1,8 @@
 package com.patrickzhong.aplux;
 
 import android.annotation.TargetApi;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -9,6 +11,7 @@ import android.location.Location;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
@@ -20,6 +23,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -35,6 +39,10 @@ public class ScrollingActivity extends AppCompatActivity {
 
     static FirebaseDatabase database;
     static DatabaseReference ref;
+    NotificationCompat.Builder mBuilder;
+
+    //temporary, crummy solution to double push problem
+    public static boolean runOnce = false;
 
 
     public static ScrollingActivity instance;
@@ -52,6 +60,71 @@ public class ScrollingActivity extends AppCompatActivity {
             database = FirebaseDatabase.getInstance();
             database.setPersistenceEnabled(true);
             ref = database.getReference();
+
+
+
+            ref.addChildEventListener(new ChildEventListener() {
+                @Override
+                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                    /*if (runOnce == false){
+                        runOnce = true;
+                        return;
+                    }
+                    else{*/
+                        System.out.println(dataSnapshot);
+
+                        runOnce = false;
+
+
+                        mBuilder = new NotificationCompat.Builder(instance)
+                                .setSmallIcon(R.drawable.icon)
+                                .setContentTitle("Event tracker")
+                                .setContentText("Events received")
+                                .setPriority(Notification.PRIORITY_HIGH);
+                        mBuilder.setVibrate(new long[0]);
+
+                        NotificationCompat.InboxStyle inboxStyle =
+                                new NotificationCompat.InboxStyle();
+                        String[] events = new String[6];
+
+                        // Sets a title for the Inbox in expanded layout
+                        inboxStyle.setBigContentTitle("New report: "+dataSnapshot.getKey());
+                        // Moves events into the expanded layout
+                        for (int i=0; i < events.length; i++) {
+
+                            inboxStyle.addLine(events[i]);
+                        }
+                        // Moves the expanded layout object into the notification object.
+                        mBuilder.setStyle(inboxStyle);
+                        // Issue the notification here.
+                        NotificationManager notificationManager =
+                                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+                        notificationManager.notify(0, mBuilder.build());
+                        return;
+                   // }
+                }
+
+                @Override
+                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                }
+
+                @Override
+                public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                }
+
+                @Override
+                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    //don't do anything
+                }
+            });
         }
 
         instance = this;
