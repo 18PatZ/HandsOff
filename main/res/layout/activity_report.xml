@@ -39,8 +39,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="ID"
+                    android:textColorHint="@color/colorAccent"
                     android:inputType="text"
-                    android:maxLines="1" />
+                    android:maxLines="1"
+                    android:textColor="@color/White"/>
 
             </android.support.design.widget.TextInputLayout>
 
@@ -53,8 +55,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="Enter Description"
+                    android:textColorHint="@color/colorAccent"
                     android:inputType="text"
-                    android:maxLines="5" />
+                    android:maxLines="5"
+                    android:textColor="@color/White" />
 
             </android.support.design.widget.TextInputLayout>
 
