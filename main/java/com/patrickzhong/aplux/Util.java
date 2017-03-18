@@ -11,6 +11,11 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 
+import com.google.firebase.database.DatabaseReference;
+
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by patrickzhong on 3/17/17.
  */
@@ -24,8 +29,13 @@ public class Util {
     public static Location lastLoc;
 
     public static void pushLocation(String id, String desc, Location location){
-        ScrollingActivity.ref.child(id).child("Description").setValue(desc);
-        ScrollingActivity.ref.child(id).child("Location").setValue(serialize(location));
+        DatabaseReference ref = ScrollingActivity.ref.child(id);
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("Description", desc);
+        map.put("Location", serialize(location));
+        ref.updateChildren(map);
+        //ScrollingActivity.ref.child(id).child("Description").setValue(desc);
+        //ScrollingActivity.ref.child(id).child("Location").setValue(serialize(location));
         ReportActivity.instance.showProgress(false);
         ReportActivity.instance.startActivity(new Intent(ReportActivity.instance, ScrollingActivity.class));
     }

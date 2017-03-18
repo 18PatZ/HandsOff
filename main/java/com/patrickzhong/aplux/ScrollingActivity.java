@@ -114,6 +114,33 @@ public class ScrollingActivity extends AppCompatActivity {
                                 (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
                         notificationManager.notify(0, mBuilder.build());
+
+                    if (Util.lastLoc != null) {
+
+                        LinearLayout ll = (LinearLayout) instance.findViewById(R.id.linearLayout);
+
+                        String desc = dataSnapshot.child("Description").getValue(String.class);
+                        String id = dataSnapshot.getKey();
+                        String loc = dataSnapshot.child("Location").getValue(String.class);
+
+                        String[] arr = loc.split(" ");
+                        float[] results = new float[3];
+                        Location.distanceBetween(Util.lastLoc.getLatitude(), Util.lastLoc.getLongitude(), Double.parseDouble(arr[0]), Double.parseDouble(arr[1]), results);
+                        double dist = results[0];
+                        if (dist <= 10) {
+                            final Report r = new Report(id, desc, dist);
+                            addBox(r, ll);
+
+                            new Thread(new Runnable(){
+                                public void run(){
+
+                                    Classification classification = service.classify("90e7b4x199-nlc-2963", r.desc).execute();
+                                    tags.put(r.id, classification.getTopClass());
+
+                                }
+                            }).start();
+                        }
+                    }
                         return;
                    // }
                 }
