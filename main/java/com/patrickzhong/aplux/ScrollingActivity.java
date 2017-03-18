@@ -3,6 +3,7 @@ package com.patrickzhong.aplux;
 import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -94,7 +95,9 @@ public class ScrollingActivity extends AppCompatActivity {
                     TextView bb = new TextView(instance);
 
                     bb.setText(id+"\n"+desc+"\n"+"Distance: "+dist+" meters.\n");
-                    bb.setTextAppearance(R.style.ButtonTheme);
+                    bb.setTextSize(20);
+                    bb.setTextColor(Color.RED);
+                    bb.setBackgroundResource(R.drawable.border);
                     ll.addView(bb);
                 }
             }
