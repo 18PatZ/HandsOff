@@ -4,12 +4,15 @@ import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.DisplayMetrics;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,6 +25,10 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 
 public class ScrollingActivity extends AppCompatActivity {
@@ -82,6 +89,9 @@ public class ScrollingActivity extends AppCompatActivity {
             public void onDataChange(DataSnapshot snapshot) {
                 LinearLayout ll = (LinearLayout) instance.findViewById(R.id.linearLayout);
                 ll.removeAllViews();
+
+                List<Report> reports = new ArrayList<Report>();
+
                 for(DataSnapshot each : snapshot.getChildren()){
                     String desc = each.child("Description").getValue(String.class);
                     String id = each.getKey();
@@ -91,12 +101,26 @@ public class ScrollingActivity extends AppCompatActivity {
                     float[] results = new float[3];
                     Location.distanceBetween(location.getLatitude(), location.getLongitude(), Double.parseDouble(arr[0]), Double.parseDouble(arr[1]), results);
                     double dist = results[0];
+                    if(dist <= 10){
+                        reports.add(new Report(id, desc, dist));
+                    }
+                }
 
+                Collections.sort(reports);
+
+                DisplayMetrics displayMetrics = new DisplayMetrics();
+                instance.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+                int height = displayMetrics.heightPixels;
+                int width = displayMetrics.widthPixels;
+
+                for(Report r : reports){
                     TextView bb = new TextView(instance);
-
-                    bb.setText(id+"\n"+desc+"\n"+"Distance: "+dist+" meters.\n");
+                    bb.setText("\n"+r.id+"\n"+r.desc+"\n"+"Distance: "+format(r.dist)+" meters.\n");
                     bb.setTextSize(20);
-                    bb.setTextColor(Color.RED);
+                    bb.setTextColor(Color.WHITE);
+                    bb.setTypeface(null, Typeface.BOLD);
+                    bb.setGravity(Gravity.CENTER);
+                    bb.setWidth(width);
                     bb.setBackgroundResource(R.drawable.border);
                     ll.addView(bb);
                 }
@@ -107,6 +131,10 @@ public class ScrollingActivity extends AppCompatActivity {
 
             }
         });
+    }
+
+    private static String format(double dist){
+        return ((int) (dist * 10) / 10.0)+"";
     }
 
     @Override

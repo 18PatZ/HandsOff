@@ -41,6 +41,8 @@ public class Util {
             ActivityCompat.requestPermissions(cont, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 0);
     }
 
+
+
     public static void preparePush(String idN, String descN){
         id = idN;
         desc = descN;
