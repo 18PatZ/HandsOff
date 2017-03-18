@@ -29,13 +29,20 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.ibm.watson.developer_cloud.natural_language_classifier.v1.NaturalLanguageClassifier;
+import com.ibm.watson.developer_cloud.natural_language_classifier.v1.model.Classification;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+
+import static android.R.attr.width;
 
 
 public class ScrollingActivity extends AppCompatActivity {
+
+    static HashMap<String, String> tags = new HashMap<String, String>();
 
     static FirebaseDatabase database;
     static DatabaseReference ref;
@@ -48,12 +55,18 @@ public class ScrollingActivity extends AppCompatActivity {
     public static ScrollingActivity instance;
     public boolean requesting = false;
 
+    public static NaturalLanguageClassifier service;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scrolling);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+
+        service = new NaturalLanguageClassifier();
+        service.setUsernameAndPassword("8d73e03c-b2a9-4677-94de-8dc3e8a4ccdb", "npnKkmTHgbeN");
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         if(database == null) {
@@ -141,6 +154,8 @@ public class ScrollingActivity extends AppCompatActivity {
 
 
 
+
+
         //Util.go(act);
 
         //LinearLayout ll = (LinearLayout) findViewById(R.id.linearLayout);
@@ -160,10 +175,10 @@ public class ScrollingActivity extends AppCompatActivity {
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
-                LinearLayout ll = (LinearLayout) instance.findViewById(R.id.linearLayout);
+                final LinearLayout ll = (LinearLayout) instance.findViewById(R.id.linearLayout);
                 ll.removeAllViews();
 
-                List<Report> reports = new ArrayList<Report>();
+                final List<Report> reports = new ArrayList<Report>();
 
                 for(DataSnapshot each : snapshot.getChildren()){
                     String desc = each.child("Description").getValue(String.class);
@@ -187,16 +202,22 @@ public class ScrollingActivity extends AppCompatActivity {
                 int width = displayMetrics.widthPixels;
 
                 for(Report r : reports){
-                    TextView bb = new TextView(instance);
-                    bb.setText("\n"+r.id+"\n"+r.desc+"\n"+"Distance: "+format(r.dist)+" meters.\n");
-                    bb.setTextSize(20);
-                    bb.setTextColor(Color.WHITE);
-                    bb.setTypeface(null, Typeface.BOLD);
-                    bb.setGravity(Gravity.CENTER);
-                    bb.setWidth(width);
-                    bb.setBackgroundResource(R.drawable.border);
-                    ll.addView(bb);
+                    //Classification classification = service.classify("90e7b4x199-nlc-2963", r.desc).execute();
+                    addBox(r, ll);
                 }
+
+                new Thread(new Runnable(){
+                    public void run(){
+
+                        for(Report r : reports){
+                            Classification classification = service.classify("90e7b4x199-nlc-2963", r.desc).execute();
+                            tags.put(r.id, classification.getTopClass());
+                        }
+
+                    }
+                }).start();
+
+
             }
 
             @Override
@@ -204,6 +225,28 @@ public class ScrollingActivity extends AppCompatActivity {
 
             }
         });
+    }
+
+    public static void addBox(final Report r, LinearLayout ll){
+        final TextView bb = new TextView(instance);
+        //"Tag: "+tag+"\n"
+        bb.setText("\n"+r.id+"\n"+r.desc+"\n"+"Distance: "+format(r.dist)+" meters.\n");
+        bb.setTextSize(20);
+        bb.setTextColor(Color.WHITE);
+        bb.setTypeface(null, Typeface.BOLD);
+        bb.setGravity(Gravity.CENTER);
+        bb.setWidth(width);
+        bb.setBackgroundResource(R.drawable.border);
+
+        bb.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                bb.setText(bb.getText()+"Tag: "+tags.get(r.id)+"\n");
+            }
+        });
+
+        ll.addView(bb);
+
     }
 
     private static String format(double dist){
