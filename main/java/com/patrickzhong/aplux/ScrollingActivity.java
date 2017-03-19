@@ -5,6 +5,8 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.location.Location;
@@ -32,6 +34,11 @@ import com.google.firebase.database.ValueEventListener;
 import com.ibm.watson.developer_cloud.natural_language_classifier.v1.NaturalLanguageClassifier;
 import com.ibm.watson.developer_cloud.natural_language_classifier.v1.model.Classification;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -127,19 +134,18 @@ public class ScrollingActivity extends AppCompatActivity {
                         float[] results = new float[3];
                         Location.distanceBetween(Util.lastLoc.getLatitude(), Util.lastLoc.getLongitude(), Double.parseDouble(arr[0]), Double.parseDouble(arr[1]), results);
                         double dist = results[0];
-                        if (dist <= 10) {
-                            final Report r = new Report(id, desc, dist);
+                        //if (dist <= 10) {
+                            final Report r = new Report(id, desc, 0.2);//dist
                             addBox(r, ll);
 
                             new Thread(new Runnable(){
                                 public void run(){
-
                                     Classification classification = service.classify("90e7b4x199-nlc-2963", r.desc).execute();
                                     tags.put(r.id, classification.getTopClass());
 
                                 }
                             }).start();
-                        }
+                        //}
                     }
                         return;
                    // }
@@ -254,6 +260,22 @@ public class ScrollingActivity extends AppCompatActivity {
         });
     }
 
+    private static Bitmap getImageBitmap(String url) {
+        Bitmap bm = null;
+        try {
+            URL aURL = new URL(url);
+            URLConnection conn = aURL.openConnection();
+            conn.connect();
+            InputStream is = conn.getInputStream();
+            BufferedInputStream bis = new BufferedInputStream(is);
+            bm = BitmapFactory.decodeStream(bis);
+            bis.close();
+            is.close();
+        } catch (IOException e) {
+        }
+        return bm;
+    }
+
     public static void addBox(final Report r, LinearLayout ll){
         final TextView bb = new TextView(instance);
         //"Tag: "+tag+"\n"
@@ -268,11 +290,24 @@ public class ScrollingActivity extends AppCompatActivity {
         bb.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                bb.setText(bb.getText()+"Tag: "+tags.get(r.id)+"\n");
+                bb.setText(bb.getText()+"Threat level: "+tags.get(r.id)+"\n");
             }
         });
 
         ll.addView(bb);
+
+        /*try {
+            ImageView im = new ImageView(instance);
+            File imgFile = new  File("img.png");
+            Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+            im.setImageBitmap(myBitmap);
+            ll.addView(im);
+        }
+        catch (Exception e){
+            System.out.println(e.toString());
+        }*/
+
+
 
     }
 
