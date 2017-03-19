@@ -1,4 +1,5 @@
 # Hands Off
+An Android app built by Patrick Zhong, Aziza Kydyrmaeva, Adriano Hernandez, and Muhammad Alsharif at MenloHacks II.
 
 ## Inspiration
 Each year, there are over 100,000 assaults and harassments. Clearly, street harassment is a pressing problem that has been overlooked and undersolved. Our app aims to help fight these occurences.
